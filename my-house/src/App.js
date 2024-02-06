@@ -22,7 +22,7 @@ function App() {
       <CssBaseline />
       <AppBar position="fixed">
         <Toolbar>
-          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link to="/my-house" style={{ textDecoration: 'none', color: 'inherit' }}>
             <IconButton
               color="inherit"
               aria-label="open drawer"
@@ -41,7 +41,7 @@ function App() {
 
       <Container component="main" sx={{ flexGrow: 1, padding: 3, marginTop: 5 }}>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/my-house" element={<Home />} />
           <Route path="/details/:index" element={<HouseDetails />} />
           <Route path="/update/:index" element={<UpdateDetails />} />
           {/* <Route path="/about" element={<About />} />
