@@ -1,0 +1,90 @@
+.tank {
+  width: 50px;
+  height: 50px;
+  background: rgb(74, 188, 233);
+}
+
+.top-ceiling {
+  width: 150px;
+  height: 10px;
+  background: slategray;
+}
+
+.ceiling {
+  width: 300px;
+  height: 10px;
+  background: slategray;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.room {
+  position: relative;
+  width: 150px !important;
+  height: 100px;
+  background-color: rgb(243, 198, 115);
+  border: 2px solid #3366cc;
+  border-radius: 10px;
+}
+
+.shop {
+  position: relative;
+  width: 60px !important;
+  height: 100px;
+  background-color: rgb(115, 134, 243);
+  border: 2px solid #3366cc;
+  border-radius: 10px;
+}
+
+.shop-door {
+  position: relative;
+  width: 90px;
+  height: 80px;
+  background-color:#8b4513;
+  border: 2px solid #3366cc;
+  border-radius: 5px;
+  bottom: 0;
+  
+}
+
+.house {
+  position: relative;
+  width: 150px !important;
+  height: 100px;
+  background-color: rgb(243, 198, 115);
+  border: 2px solid #3366cc;
+  border-radius: 10px;
+}
+
+.window {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: #87ceeb;
+  border: 2px solid #3366cc;
+  border-radius: 5px;
+}
+
+.window.left {
+  top: 15px;
+  left: 15px;
+}
+
+.window.right {
+  top: 15px;
+  right: 15px;
+}
+
+.door {
+  position: absolute;
+  width: 40px;
+  height: 80px;
+  background-color: #8b4513;
+  border: 2px solid #3366cc;
+  border-radius: 5px;
+  bottom: 0;
+  left: 30px;
+}
+
+  
