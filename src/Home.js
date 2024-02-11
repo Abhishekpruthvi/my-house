@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import './Building.css';
 import { Link } from 'react-router-dom';
-import { Grid, Paper, Typography, Button, Menu, MenuItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
+import {
+    Grid, Paper, Typography, Button, Box, Divider, TextField, Dialog, DialogActions, DialogContent,
+    DialogContentText, DialogTitle, MenuItem
+} from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import GoogleSheetApi from './GoogleSheetApi';
 import HouseDetails from './HouseDetails';
 import { useNavigate } from 'react-router-dom';
+import FirebaseDatastore from './FirebaseDatastore';
 
 export default function Home() {
 
@@ -15,8 +19,78 @@ export default function Home() {
     const [secondFloor, setSecondFloor] = useState(false);
     const [thirdFloor, setThirdFloor] = useState(false);
     const [data, setData] = useState(null);
+    const [rentalType, setRentalType] = useState('');
+    const [addHouse, setAddHouse] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [houseDetails, setHouseDetails] = useState({ waterReading: [{ month: {}, year: new Date().getFullYear() }], rentDetails: [{ month: {}, year: new Date().getFullYear() }] })
+    const [type, setType] = useState('');
+    const [refresh, setRefresh] = useState(false);
+
+    const floors = ["Ground Floor", "First Floor", "Second Floor", "Third Floor"]
+    const houseNumbers = ["House 1", "House 2", "House 3", "House 4"]
+    const shopNumbers = ["Shop 1", "Shop 2", "Shop 3", "Shop 4", "Shop 5"]
+    const types = ["House", "Shop"]
 
     const navigate = useNavigate();
+
+    const handleClose = () => {
+        setDialogOpen(false);
+    }
+
+    const handleOpen = () => {
+        setDialogOpen(true);
+    }
+
+    const handleFloorChange = (e) => {
+        let updatedHouse = houseDetails;
+        updatedHouse.floor = e.target.value;
+        setHouseDetails(updatedHouse);
+    }
+
+    const handleTypeChange = (e) => {
+        setType(e.target.value)
+    }
+
+    const handleHouseChange = (e) => {
+        let updatedHouse = houseDetails;
+        updatedHouse.houseNumber = e.target.value;
+        setHouseDetails(updatedHouse);
+    }
+
+    const handleRrNumberChange = (e) => {
+        let updatedHouse = houseDetails;
+        updatedHouse.rrNumber = e.target.value;
+        setHouseDetails(updatedHouse);
+    }
+
+    const handleDateOfOccupancy = (e) => {
+        let updatedHouse = houseDetails;
+        updatedHouse.dateOfOccupancy = new Date(e.target.value);
+        setHouseDetails(updatedHouse);
+    }
+
+    const handleNameChange = (e) => {
+        let updatedHouse = houseDetails;
+        updatedHouse.name = e.target.value;
+        setHouseDetails(updatedHouse);
+    }
+
+    const handleMobileNumberChange = (e) => {
+        let updatedHouse = houseDetails;
+        updatedHouse.mobileNumber = e.target.value;
+        setHouseDetails(updatedHouse);
+    }
+
+
+    const updateHouse = () => {
+        console.log("house details======================= {} ", houseDetails)
+        FirebaseDatastore.addData(houseDetails).catch(error => {
+            console.error("Error Occured")
+        });
+        setDialogOpen(false);
+        setRefresh(true);
+        setHouseDetails({ waterReading: [{ month: {}, year: new Date().getFullYear() }], rentDetails: [{ month: {}, year: new Date().getFullYear() }] });
+    }
 
     const handleGroundFloor = () => {
         setGroundFloor(!groundFloor)
@@ -33,26 +107,38 @@ export default function Home() {
         setThirdFloor(!thirdFloor)
     }
 
+    const getDate = (seconds, nanoSeconds) => {
+        const date = new Date(seconds * 1000 + nanoSeconds / 1000000);
+        return date.toLocaleDateString();
+    }
     useEffect(() => {
-        GoogleSheetApi.fetchData().then((response) => {
-            console.log('response ===========', response)
+
+        FirebaseDatastore.fetchData().then((response) => {
+            console.log("In home ============", response);
+            response.sort((a, b) => a.houseNumber.localeCompare(b.houseNumber));
             setData(response)
         }).catch(error => {
             console.error("Error Occured")
         });
-    }, [])
+        setRefresh(false);
+    }, [refresh, houseDetails])
     console.log("outsid lod =============== ", data);
 
     const handleViewMoreClick = (index) => {
         // Replace '/your-link' with the actual link you want to navigate to
-        navigate(`/update/${index}`,  { state: { data: data, updateData:data[index] } });
-      };
+        navigate(`/my-house/update/${index}`, { state: { data: data, updateData: data[index] } });
+    };
+
+    const handleViewMore = (record) => {
+        // Replace '/your-link' with the actual link you want to navigate to
+        navigate(`/my-house/update/${record.floor}/${record.houseNumber}`, { state: { data: record } });
+    };
 
     return (
         <Grid container>
             <Grid container justifyContent="center" alignContent="center" spacing={2} marginTop="10px">
                 <Paper style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '99%', textAlign: 'center' }}>
-                    <Typography variant="h4">
+                    <Typography variant="h5" margin="10px">
                         House Details
                     </Typography>
                     <Button variant="contained" size="large" style={{ width: "95%", margin: "5px" }}
@@ -66,35 +152,44 @@ export default function Home() {
                     {groundFloor ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
-                            {data.map((record, index) => (
-                                index > 2 && index < 10 && (
+                            {data.map((record, index) => {
 
-                                    <Typography key={index} variant="h8">
-
-                                        <br />
-                                    House No : {record[1]}
-                                        <br />
-                                    RR No : {record[2]}
-                                        <br />
-                                    Date of Occupancy : {record[3]}
-                                        <br />
-
-                                    Name : {record[4]}
-                                        <br />
-
-                                    Phone Number : {record[5]}
-                                        <br />
-                                <Button variant="contained" size="small" onClick={()=>handleViewMoreClick(index)} >
-                                            View More
+                                if (record.floor === "Ground Floor") {
+                                    return (
+                                        <Typography key={index} variant="h8">
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <div>
+                                                    {record.houseNumber.includes("House") ?
+                                                        <div>House No </div> : <div>Shop No </div>}
+                                                    <div>RR No </div>
+                                                    <div>Date of Occupancy </div>
+                                                    <div>Name </div>
+                                                    <div>Mobile Number </div>
+                                                </div>
+                                                <div>
+                                                    <div>:</div>
+                                                    <div> :</div>
+                                                    <div>:</div>
+                                                    <div> :</div>
+                                                    <div> :</div>
+                                                </div>
+                                                <div>
+                                                    <div>{record.houseNumber}</div>
+                                                    <div>{record.rrNumber}</div>
+                                                    <div>{getDate(record.dateOfOccupancy.seconds, record.dateOfOccupancy.nanoseconds)}</div>
+                                                    <div>{record.name}</div>
+                                                    <div>{record.mobileNumber}</div>
+                                                </div>
+                                            </div>
+                                            <br />
+                                            <Button variant="contained" size="small" onClick={() => handleViewMore(record)} >
+                                                View More
                                     </Button>
-                                        <Divider style={{ marginTop: "20px" }} />
-
-                                    </Typography>
-
-
-
-                                ))
-                            )}
+                                            <Divider style={{ margin: "20px" }} />
+                                        </Typography>
+                                    )
+                                }
+                            })}
                         </Paper>
                         : null
                     }
@@ -110,31 +205,44 @@ export default function Home() {
                     {firstFloor ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
-                            {data.map((record, index) => (
-                                index > 11 && index < 16 && (
-                                    <Typography key={index} variant="h8">
+                            {data.map((record, index) => {
 
-                                        <br />
-                                    House No : {record[1]}
-                                        <br />
-                                    RR No : {record[2]}
-                                        <br />
-                                    Date of Occupancy : {record[3]}
-                                        <br />
-
-                                    Name : {record[4]}
-                                        <br />
-
-                                    Phone Number : {record[5]}
-                                        <br />
-                                        <Button variant="contained" size="small" onClick={()=>handleViewMoreClick(index)}>
-                                            View More
-                                    </Button>
-                                        <Divider style={{ marginTop: "20px" }} />
-
-                                    </Typography>
-                                ))
-                            )}
+                                if (record.floor === "First Floor") {
+                                    return (
+                                        <Typography key={index} variant="h8">
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <div>
+                                                    {record.houseNumber.includes("House") ?
+                                                        <div>House No </div> : <div>Shop No </div>}
+                                                    <div>RR No </div>
+                                                    <div>Date of Occupancy </div>
+                                                    <div>Name </div>
+                                                    <div>Mobile Number </div>
+                                                </div>
+                                                <div>
+                                                    <div>:</div>
+                                                    <div> :</div>
+                                                    <div>:</div>
+                                                    <div> :</div>
+                                                    <div> :</div>
+                                                </div>
+                                                <div>
+                                                    <div>{record.houseNumber}</div>
+                                                    <div>{record.rrNumber}</div>
+                                                    <div>{getDate(record.dateOfOccupancy.seconds, record.dateOfOccupancy.nanoseconds)}</div>
+                                                    <div>{record.name}</div>
+                                                    <div>{record.mobileNumber}</div>
+                                                </div>
+                                            </div>
+                                            <br />
+                                            <Button variant="contained" size="small" onClick={() => handleViewMore(record)} >
+                                                View More
+        </Button>
+                                            <Divider style={{ margin: "20px" }} />
+                                        </Typography>
+                                    )
+                                }
+                            })}
                         </Paper>
                         : null
                     }
@@ -150,31 +258,44 @@ export default function Home() {
                     {secondFloor ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
-                            {data.map((record, index) => (
-                                index > 17 && index < 22 && (
-                                    <Typography key={index} variant="h8">
+                            {data.map((record, index) => {
 
-                                        <br />
-                                    House No : {record[1]}
-                                        <br />
-                                    RR No : {record[2]}
-                                        <br />
-                                    Date of Occupancy : {record[3]}
-                                        <br />
-
-                                    Name : {record[4]}
-                                        <br />
-
-                                    Phone Number : {record[5]}
-                                        <br />
-                                        <Button variant="contained" size="small" onClick={()=>handleViewMoreClick(index)}>
-                                            View More
-                                    </Button>
-                                        <Divider style={{ marginTop: "20px" }} />
-
-                                    </Typography>
-                                ))
-                            )}
+                                if (record.floor === "Second Floor") {
+                                    return (
+                                        <Typography key={index} variant="h8">
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <div>
+                                                    {record.houseNumber.includes("House") ?
+                                                        <div>House No </div> : <div>Shop No </div>}
+                                                    <div>RR No </div>
+                                                    <div>Date of Occupancy </div>
+                                                    <div>Name </div>
+                                                    <div>Mobile Number </div>
+                                                </div>
+                                                <div>
+                                                    <div>:</div>
+                                                    <div> :</div>
+                                                    <div>:</div>
+                                                    <div> :</div>
+                                                    <div> :</div>
+                                                </div>
+                                                <div>
+                                                    <div>{record.houseNumber}</div>
+                                                    <div>{record.rrNumber}</div>
+                                                    <div>{getDate(record.dateOfOccupancy.seconds, record.dateOfOccupancy.nanoseconds)}</div>
+                                                    <div>{record.name}</div>
+                                                    <div>{record.mobileNumber}</div>
+                                                </div>
+                                            </div>
+                                            <br />
+                                            <Button variant="contained" size="small" onClick={() => handleViewMore(record)} >
+                                                View More
+        </Button>
+                                            <Divider style={{ margin: "20px" }} />
+                                        </Typography>
+                                    )
+                                }
+                            })}
                         </Paper>
                         : null
                     }
@@ -191,226 +312,184 @@ export default function Home() {
                     {thirdFloor ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
+                            {data.map((record, index) => {
 
-                            {data.map((record, index) => (
-                                index > 23 && index < 25 && (
-                                    <Typography key={index} variant="h8">
-
-                                        <br />
-                                    House No : {record[1]}
-                                        <br />
-                                    RR No : {record[2]}
-                                        <br />
-                                    Date of Occupancy : {record[3]}
-                                        <br />
-
-                                    Name : {record[4]}
-                                        <br />
-
-                                    Phone Number : {record[5]}
-                                        <br />
-                                    
-                                        <Button variant="contained" size="small" onClick={()=>handleViewMoreClick(index)} >
-                                            View More
-                                    </Button>
-                                        <Divider style={{ marginTop: "20px" }} />
-
-                                    </Typography>
-                                ))
-                            )}
+                                if (record.floor === "Third Floor") {
+                                    return (
+                                        <Typography key={index} variant="h8">
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <div>
+                                                    {record.houseNumber.includes("House") ?
+                                                        <div>House No </div> : <div>Shop No </div>}
+                                                    <div>RR No </div>
+                                                    <div>Date of Occupancy </div>
+                                                    <div>Name </div>
+                                                    <div>Mobile Number </div>
+                                                </div>
+                                                <div>
+                                                    <div>:</div>
+                                                    <div> :</div>
+                                                    <div>:</div>
+                                                    <div> :</div>
+                                                    <div> :</div>
+                                                </div>
+                                                <div>
+                                                    <div>{record.houseNumber}</div>
+                                                    <div>{record.rrNumber}</div>
+                                                    <div>{getDate(record.dateOfOccupancy.seconds, record.dateOfOccupancy.nanoseconds)}</div>
+                                                    <div>{record.name}</div>
+                                                    <div>{record.mobileNumber}</div>
+                                                </div>
+                                            </div>
+                                            <br />
+                                            <Button variant="contained" size="small" onClick={() => handleViewMore(record)} >
+                                                View More
+        </Button>
+                                            <Divider style={{ margin: "20px" }} />
+                                        </Typography>
+                                    )
+                                }
+                            })}
                         </Paper>
                         : null
                     }
 
+                    <Grid item margin="20px">
+                        <Button variant="contained" size="small" color="error" onClick={handleOpen} >
+                            Add House
+                                    </Button>
+                    </Grid>
+
                 </Paper>
 
 
-                {/* <div>
-                    {items.map((item, index) => (
-                        <div key={index} onClick={(e) => handleClick(e, index)}>
-                            <Typography variant="h6">
-                                {item.label} <ArrowDropDownIcon />
-                            </Typography>
-
-                            <Menu
-                                anchorEl={anchorEl}
-                                open={Boolean(anchorEl && selectedItem === index)}
-                                onClose={handleClose}
-                            >
-                                <MenuItem onClick={handleClose}>
-                                    <ListItemIcon>
-                                        <ArrowDropDownIcon />
-                                    </ListItemIcon>
-                                    <ListItemText primary={item.details} />
+                <Dialog open={dialogOpen} onClose={handleClose}>
+                    <DialogTitle>Add Rent</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>Enter the Month and Rent</DialogContentText>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="floor"
+                            name="floor"
+                            label="floor"
+                            select
+                            fullWidth
+                            value={houseDetails.floor}
+                            onChange={handleFloorChange}
+                        >
+                            {floors.map((floor, index) => (
+                                <MenuItem key={index} value={floor}>
+                                    {floor}
                                 </MenuItem>
-                            </Menu>
-                        </div>
-                    ))}
-                </div> */}
+                            ))}
+                        </TextField>
 
+                        <TextField
+                            margin="dense"
+                            id="type"
+                            name="type"
+                            label="Type"
+                            select
+                            fullWidth
+                            value={type}
+                            onChange={handleTypeChange}
+                        >
+                            {types.map((type, index) => (
+                                <MenuItem key={index} value={type}>
+                                    {type}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                        {type === "House" ?
+                            <TextField
+                                margin="dense"
+                                id="rent"
+                                name="housenumber"
+                                label="House Number"
+                                select
+                                fullWidth
+                                value={houseDetails.houseNumber}
+                                onChange={handleHouseChange}
+                            >
+                                {houseNumbers.map((house, index) => (
+                                    <MenuItem key={index} value={house}>
+                                        {house}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                            :
+                            <TextField
+                                margin="dense"
+                                id="rent"
+                                name="housenumber"
+                                label="House Number"
+                                select
+                                fullWidth
+                                value={houseDetails.houseNumber}
+                                onChange={handleHouseChange}
+                            >
+                                {shopNumbers.map((shop, index) => (
+                                    <MenuItem key={index} value={shop}>
+                                        {shop}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        }
+
+                        <TextField
+                            margin="dense"
+                            id="rrnumber"
+                            name="rrnumber"
+                            label="RR Number"
+                            type="text"
+                            fullWidth
+                            value={houseDetails.rrNumber}
+                            onChange={handleRrNumberChange}
+                        />
+
+                        <TextField
+                            margin="dense"
+                            id="doc"
+                            name="dateofoccupancy"
+                            label="Date of Occupancy"
+                            type="date"
+                            fullWidth
+                            value={houseDetails.dateOfOccupancy}
+                            onChange={handleDateOfOccupancy}
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+
+                        />
+
+                        <TextField
+                            margin="dense"
+                            id="name"
+                            name="name"
+                            label="Name"
+                            type="text"
+                            fullWidth
+                            value={houseDetails.name}
+                            onChange={handleNameChange}
+                        />
+                        <TextField
+                            margin="dense"
+                            id="mobilenumber"
+                            name="mobilenumber"
+                            label="Mobile Number"
+                            type="number"
+                            fullWidth
+                            value={houseDetails.mobileNumber}
+                            onChange={handleMobileNumberChange}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Cancel</Button>
+                        <Button onClick={updateHouse}>Save</Button>
+                    </DialogActions>
+                </Dialog>
             </Grid>
         </Grid>
     )
 }
-
-// export default function Home() {
-//     return (
-//         <Grid container>
-
-//             <Grid container justifyContent="center" alignContent="center" direction="column" spacing={2} style={{ height: '100vh' }} >
-//                 <Grid item className="tank" />
-//                 <Grid item className="top-ceiling" />
-
-//                 <Grid container className="room">
-//                     <Grid className="window left" margin="10px"></Grid>
-//                     <Grid className="door" marginLeft="50px">
-//                         <Typography marginTop="20px" marginLeft="12px">
-//                             1
-//                         </Typography>
-//                     </Grid>
-//                 </Grid>
-
-//                 <Grid item className="ceiling" justifyContent="center" alignContent="center">
-//                     <Typography align="center" marginBottom="10px">
-//                         Third Floor
-//                     </Typography>
-//                 </Grid>
-
-//                 <Grid container alignItems="center">
-//                     <Grid container className="house">
-//                         <Grid item className="window left" margin="10px" ></Grid>
-//                         <Grid item className="window right" margin="10px"></Grid>
-//                         <Grid item className="door" marginLeft="50px">
-//                             <Typography marginTop="20px" marginLeft="12px">
-//                                 1
-//                         </Typography>
-//                         </Grid>
-//                     </Grid>
-
-//                     <Grid container className="house">
-//                         <Grid item className="window left" margin="10px" ></Grid>
-//                         <Grid item className="window right" margin="10px"></Grid>
-//                         <Grid item className="door" marginLeft="50px">
-//                             <Typography marginTop="20px" marginLeft="12px">
-//                                 2
-//                         </Typography>
-//                         </Grid>
-//                     </Grid>
-//                     <Grid container className="house">
-//                         <Grid item className="window left" margin="10px" ></Grid>
-//                         <Grid item className="window right" margin="10px"></Grid>
-//                         <Grid item className="door" marginLeft="50px">
-//                             <Typography marginTop="20px" marginLeft="12px">
-//                                 3
-//                         </Typography>
-//                         </Grid>
-//                     </Grid>
-
-//                     <Grid container className="house">
-//                         <Grid item className="window left" margin="10px" ></Grid>
-//                         <Grid item className="window right" margin="10px"></Grid>
-//                         <Grid item className="door" marginLeft="50px">
-//                             <Grid item>
-//                                 <Button
-//                                     variant="contained"
-//                                     color="primary"
-//                                     size="small"
-//                                     style={{
-//                                         width: '40px',
-//                                         height: '30px',
-//                                         display: 'flex',
-//                                         flexDirection: 'column',
-//                                         alignItems: 'center',
-//                                         justifyContent: 'center',
-//                                         minWidth: '0', // Set min-width to 0
-//                                         marginTop:'20px'
-//                                       }}
-//                                 >
-//                                     4
-//                                  </Button>
-
-//                             </Grid>
-
-
-//                         </Grid>
-//                     </Grid>
-//                 </Grid>
-
-//                 <Grid item className="ceiling" justifyContent="center" alignContent="center">
-//                     <Typography align="center" marginBottom="10px">
-//                         Second Floor
-//                     </Typography>
-//                 </Grid>
-//                 <Grid container>
-//                     <Grid container className="house">
-//                         <Grid item className="window left" margin="10px" ></Grid>
-//                         <Grid item className="window right" margin="10px"></Grid>
-//                         <Grid item className="door" marginLeft="50px"></Grid>
-//                     </Grid>
-
-//                     <Grid container className="house">
-//                         <Grid item className="window left" margin="10px" ></Grid>
-//                         <Grid item className="window right" margin="10px"></Grid>
-//                         <Grid item className="door" marginLeft="50px"></Grid>
-//                     </Grid>
-//                     <Grid container className="house">
-//                         <Grid item className="window left" margin="10px" ></Grid>
-//                         <Grid item className="window right" margin="10px"></Grid>
-//                         <Grid item className="door" marginLeft="50px"></Grid>
-//                     </Grid>
-
-//                     <Grid container className="house">
-//                         <Grid item className="window left" margin="10px" ></Grid>
-//                         <Grid item className="window right" margin="10px"></Grid>
-//                         <Grid item className="door" marginLeft="50px"></Grid>
-//                     </Grid>
-//                 </Grid>
-
-
-//                 <Grid item className="ceiling" justifyContent="center" alignContent="center">
-//                     <Typography align="center" marginBottom="10px">
-//                         First Floor
-//                     </Typography>
-//                 </Grid>
-//                 <Grid container>
-//                     <Grid container className="house">
-//                         <Grid item className="window left" margin="10px" ></Grid>
-//                         <Grid item className="window right" margin="10px"></Grid>
-//                         <Grid item className="door" marginLeft="50px"></Grid>
-//                     </Grid>
-
-//                     <Grid container className="house">
-//                         <Grid item className="window left" margin="10px" ></Grid>
-//                         <Grid item className="window right" margin="10px"></Grid>
-//                         <Grid item className="door" marginLeft="50px"></Grid>
-//                     </Grid>
-//                 </Grid>
-//                 <Grid container>
-//                     <Grid container className="shop" justifyContent="center" alignItems="center">
-//                         <Grid item className="shop-door"></Grid>
-//                     </Grid>
-//                     <Grid container className="shop" justifyContent="center" alignItems="center">
-//                         <Grid item className="shop-door"></Grid>
-//                     </Grid>
-//                     <Grid container className="shop" justifyContent="center" alignItems="center">
-//                         <Grid item className="shop-door"></Grid>
-//                     </Grid>
-//                     <Grid container className="shop" justifyContent="center" alignItems="center">
-//                         <Grid item className="shop-door"></Grid>
-//                     </Grid>
-//                     <Grid container className="shop" justifyContent="center" alignItems="center">
-//                         <Grid item className="shop-door"></Grid>
-//                     </Grid>
-//                 </Grid>
-//                 <Grid item className="ceiling" justifyContent="center" alignContent="center">
-//                     <Typography align="center" marginBottom="10px">
-//                         Ground Floor
-//                     </Typography>
-//                 </Grid>
-
-//             </Grid>
-
-//         </Grid>
-
-//     )
-// }
