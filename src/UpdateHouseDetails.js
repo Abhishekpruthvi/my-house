@@ -107,7 +107,44 @@ export default function UpdateHouseDetails() {
     let updatedRecord = editableData;
     updatedRecord.waterReading.map(record => {
       if (record.year === new Date().getFullYear()) {
-        record.month[month] = reading;
+        console.log("record ===================", record)
+        let updateObject = {
+          reading:reading,
+          cost:0
+        }
+
+        const currentIndex = months.findIndex(mon => mon === month);
+
+        let prevMonthReading;
+        let defaultPrevMonthReading = [];
+        defaultPrevMonthReading.push(reading[0]-5000);
+        if(reading[1]) {
+          defaultPrevMonthReading.push(reading[0]-2000);
+        }
+
+        // If the current month is the first month, return undefined
+        if (currentIndex === 0) {
+          // or handle the edge case as per your requirement
+          
+          prevMonthReading = updatedRecord.waterReading.find(entry => entry.year === (new Date().getFullYear()) - 1)?.month.December?.reading;
+          prevMonthReading = prevMonthReading ? prevMonthReading : defaultPrevMonthReading
+        } else {
+          prevMonthReading = record.month[months[currentIndex - 1]];
+        }
+        let cost = 0;
+
+        for (let i = 0; i < reading.length; i++) {
+          // Subtract corresponding elements from array2 from array1
+          const difference = reading[i] - prevMonthReading[i];
+
+          // Multiply the difference by 0.15
+          const multipliedValue = difference * 0.15;
+
+          // Add the multiplied value to the sum
+          cost += multipliedValue;
+        }
+        updateObject.cost = cost;
+        record.month[month] = updateObject;
       }
     })
     console.log("updated record================= ", updatedRecord)
@@ -185,13 +222,14 @@ export default function UpdateHouseDetails() {
             if (reading.year === new Date().getFullYear()) {
               return (
                 Object.entries(reading.month).map(([month, values]) => (
+                  console.log("what if values ================ ", values),
                   <Grid container key={month} alignItems="center">
                     <Grid item xs={3}>
                       <Typography variant="h8" gutterBottom>{month}</Typography>
                     </Grid>
                     <Grid item xs={7}>
                       <div style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                        {values.map((value, index) => (
+                        {values.reading.map((value, index) => (
                           <Typography key={index} variant="h8" style={{ margin: '0 5px 0 20px' }}>{value}</Typography>
                         ))}
                       </div>
