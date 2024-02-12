@@ -312,7 +312,7 @@ export default function Home() {
                     {thirdFloor ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
-                            {data.map((record, index) => {
+                            { data && data.map((record, index) => {
 
                                 if (record.floor === "Third Floor") {
                                     return (

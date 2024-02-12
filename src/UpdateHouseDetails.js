@@ -90,7 +90,7 @@ export default function UpdateHouseDetails() {
 
   const handleEditOpen = (month, values) => {
     setMonth(month)
-    setReadingStringArray(values.join(','));
+    // setReadingStringArray(values.reading.join(','));
 
     setDialogOpen(true);
   }
@@ -116,10 +116,10 @@ export default function UpdateHouseDetails() {
         const currentIndex = months.findIndex(mon => mon === month);
 
         let prevMonthReading;
-        let defaultPrevMonthReading = [];
-        defaultPrevMonthReading.push(reading[0]-5000);
+        let defaultPrevMonthReading = {reading:[]};
+        defaultPrevMonthReading.reading.push(reading[0]-5000);
         if(reading[1]) {
-          defaultPrevMonthReading.push(reading[0]-2000);
+          defaultPrevMonthReading.reading.push(reading[0]-2000);
         }
 
         // If the current month is the first month, return undefined
@@ -128,14 +128,16 @@ export default function UpdateHouseDetails() {
           
           prevMonthReading = updatedRecord.waterReading.find(entry => entry.year === (new Date().getFullYear()) - 1)?.month.December?.reading;
           prevMonthReading = prevMonthReading ? prevMonthReading : defaultPrevMonthReading
+          console.log("in IF prev month reading ============== ", prevMonthReading)
         } else {
           prevMonthReading = record.month[months[currentIndex - 1]];
+          console.log("in else prev month reading ============== ", prevMonthReading)
         }
         let cost = 0;
 
         for (let i = 0; i < reading.length; i++) {
           // Subtract corresponding elements from array2 from array1
-          const difference = reading[i] - prevMonthReading[i];
+          const difference = reading[i] - prevMonthReading.reading[i];
 
           // Multiply the difference by 0.15
           const multipliedValue = difference * 0.15;
@@ -210,10 +212,13 @@ export default function UpdateHouseDetails() {
             <Grid item xs={3}>
               <Typography variant="h6" gutterBottom>Month</Typography>
             </Grid>
-            <Grid item xs={7}>
+            <Grid item xs={6}>
               <Typography variant="h6" gutterBottom>Reading</Typography>
             </Grid>
             <Grid item xs={2}>
+              <Typography variant="h6" gutterBottom>Cost</Typography>
+            </Grid>
+            <Grid item xs={1}>
               <Typography variant="h6" gutterBottom>Modify</Typography>
             </Grid>
           </Grid>
@@ -227,15 +232,17 @@ export default function UpdateHouseDetails() {
                     <Grid item xs={3}>
                       <Typography variant="h8" gutterBottom>{month}</Typography>
                     </Grid>
-                    <Grid item xs={7}>
+                    <Grid item xs={6}>
                       <div style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                         {values.reading.map((value, index) => (
                           <Typography key={index} variant="h8" style={{ margin: '0 5px 0 20px' }}>{value}</Typography>
                         ))}
                       </div>
                     </Grid>
-
-                    <Grid item xs={2} justifyContent="flex-end">
+                    <Grid item xs={2}>
+                      <Typography variant="h8" gutterBottom>{values.cost}</Typography>
+                    </Grid>
+                    <Grid item xs={1} justifyContent="flex-end">
                       <Button color="primary" size="small" onClick={() => handleEditOpen(month, values)}>
                         <EditIcon style={{ cursor: 'pointer', marginBottom: "10px" }} />
                       </Button>
