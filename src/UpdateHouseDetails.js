@@ -119,7 +119,7 @@ export default function UpdateHouseDetails() {
         let defaultPrevMonthReading = {reading:[]};
         defaultPrevMonthReading.reading.push(reading[0]-5000);
         if(reading[1]) {
-          defaultPrevMonthReading.reading.push(reading[0]-2000);
+          defaultPrevMonthReading.reading.push(reading[1]-2000);
         }
 
         // If the current month is the first month, return undefined
