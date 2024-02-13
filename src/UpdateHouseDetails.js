@@ -90,7 +90,8 @@ export default function UpdateHouseDetails() {
 
   const handleEditOpen = (month, values) => {
     setMonth(month)
-    // setReadingStringArray(values.reading.join(','));
+    setReadingStringArray(values.reading.join(','));
+    setReading(values.reading)
 
     setDialogOpen(true);
   }
@@ -109,23 +110,23 @@ export default function UpdateHouseDetails() {
       if (record.year === new Date().getFullYear()) {
         console.log("record ===================", record)
         let updateObject = {
-          reading:reading,
-          cost:0
+          reading: reading,
+          cost: 0
         }
 
         const currentIndex = months.findIndex(mon => mon === month);
 
         let prevMonthReading;
-        let defaultPrevMonthReading = {reading:[]};
-        defaultPrevMonthReading.reading.push(reading[0]-5000);
-        if(reading[1]) {
-          defaultPrevMonthReading.reading.push(reading[1]-2000);
+        let defaultPrevMonthReading = { reading: [] };
+        defaultPrevMonthReading.reading.push(reading[0] - 4000);
+        if (reading[1]) {
+          defaultPrevMonthReading.reading.push(reading[1] - 2000);
         }
 
         // If the current month is the first month, return undefined
         if (currentIndex === 0) {
           // or handle the edge case as per your requirement
-          
+
           prevMonthReading = updatedRecord.waterReading.find(entry => entry.year === (new Date().getFullYear()) - 1)?.month.December?.reading;
           prevMonthReading = prevMonthReading ? prevMonthReading : defaultPrevMonthReading
           console.log("in IF prev month reading ============== ", prevMonthReading)
@@ -203,23 +204,31 @@ export default function UpdateHouseDetails() {
       </Grid>
 
       <Grid item width="100%">
-        <Paper style={{ padding: "10px", textAlign: 'center' }}>
+        <Paper style={{ padding: "2px", textAlign: 'center' }}>
           <Typography variant="h6" gutterBottom>
             Water Reading
           </Typography>
 
           <Grid container>
-            <Grid item xs={3}>
-              <Typography variant="h6" gutterBottom>Month</Typography>
+            <Grid item xs={2}>
+              <Typography variant="h7" gutterBottom>Month</Typography>
+              <Divider />
             </Grid>
             <Grid item xs={6}>
-              <Typography variant="h6" gutterBottom>Reading</Typography>
+              <Typography variant="h7" gutterBottom>Reading</Typography>
+              <Divider />
             </Grid>
             <Grid item xs={2}>
-              <Typography variant="h6" gutterBottom>Cost</Typography>
+              <Typography variant="h7" gutterBottom>Cost</Typography>
+              <Divider />
             </Grid>
-            <Grid item xs={1}>
-              <Typography variant="h6" gutterBottom>Modify</Typography>
+            {/* <Grid item xs={1}>
+              <Typography variant="h7" gutterBottom>Collected</Typography>
+              <Divider/>
+            </Grid> */}
+            <Grid item xs={2}>
+              <Typography variant="h7" gutterBottom>Modify</Typography>
+              <Divider />
             </Grid>
           </Grid>
 
@@ -229,20 +238,22 @@ export default function UpdateHouseDetails() {
                 Object.entries(reading.month).map(([month, values]) => (
                   console.log("what if values ================ ", values),
                   <Grid container key={month} alignItems="center">
-                    <Grid item xs={3}>
+                    <Grid item xs={2}>
                       <Typography variant="h8" gutterBottom>{month}</Typography>
                     </Grid>
                     <Grid item xs={6}>
                       <div style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                         {values.reading.map((value, index) => (
-                          <Typography key={index} variant="h8" style={{ margin: '0 5px 0 20px' }}>{value}</Typography>
+
+                          <Typography key={index} variant="h8">{value} {index != values.reading.length-1 ? " | " : ""}</Typography>
+
                         ))}
                       </div>
                     </Grid>
                     <Grid item xs={2}>
                       <Typography variant="h8" gutterBottom>{values.cost}</Typography>
                     </Grid>
-                    <Grid item xs={1} justifyContent="flex-end">
+                    <Grid item xs={2} justifyContent="center">
                       <Button color="primary" size="small" onClick={() => handleEditOpen(month, values)}>
                         <EditIcon style={{ cursor: 'pointer', marginBottom: "10px" }} />
                       </Button>
@@ -256,7 +267,7 @@ export default function UpdateHouseDetails() {
           })}
 
           <Grid container justifyContent="center" marginTop="20px">
-            <Button variant="contained" color="primary" size="small" onClick={handleOpen}>
+            <Button variant="contained" color="primary" size="small" style={{ marginBottom: "10px" }} onClick={handleOpen}>
               Add Reading
             </Button>
           </Grid>
@@ -267,19 +278,22 @@ export default function UpdateHouseDetails() {
       {/* ---------------------------------------------------------------------------------------------------- */}
 
       <Grid item width="100%">
-        <Paper style={{ padding: '20px', textAlign: 'center' }}>
+        <Paper style={{ padding: '2px', textAlign: 'center' }}>
           <Typography variant="h6" gutterBottom>
             Rent Details
                     </Typography>
           <Grid container>
             <Grid item xs={3}>
-              <Typography variant="h6" gutterBottom>Month</Typography>
+              <Typography variant="h7" gutterBottom>Month</Typography>
+              <Divider />
             </Grid>
             <Grid item xs={7}>
-              <Typography variant="h6" gutterBottom>Reading</Typography>
+              <Typography variant="h7" gutterBottom>Reading</Typography>
+              <Divider />
             </Grid>
             <Grid item xs={2}>
-              <Typography variant="h6" gutterBottom>Modify</Typography>
+              <Typography variant="h7" gutterBottom>Modify</Typography>
+              <Divider />
             </Grid>
           </Grid>
 
@@ -309,7 +323,7 @@ export default function UpdateHouseDetails() {
           })}
 
           <Grid container justifyContent="center" marginTop="20px">
-            <Button variant="contained" color="primary" size="small" onClick={handleRentOpen}>
+            <Button variant="contained" color="primary" size="small" style={{ marginBottom: "10px" }} onClick={handleRentOpen}>
               Add Rent
             </Button>
           </Grid>
