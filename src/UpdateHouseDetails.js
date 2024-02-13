@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Grid, Paper, Typography, Button, Divider, TextField, Dialog, DialogActions, DialogContent,
   DialogContentText, DialogTitle, MenuItem
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import GoogleSheetApi from './GoogleSheetApi';
 import EditIcon from '@mui/icons-material/Edit';
 import FirebaseDatastore from './FirebaseDatastore';
@@ -25,8 +24,10 @@ export default function UpdateHouseDetails() {
   const [rentDialogOpen, setRentDialogOpen] = useState(false);
 
 
+  const navigate = useNavigate();
+
+
   useEffect(() => {
-    console.log("waht in data---------------------- ", data)
     let sortData = { ...editableData };
     sortData.waterReading = sortData.waterReading.map(reading => {
       // Convert the month object into an array of key-value pairs and sort them
@@ -36,7 +37,6 @@ export default function UpdateHouseDetails() {
         return monthAIndex - monthBIndex;
       });
 
-      console.log("sorted month -------------------------- ", sortedMonths)
 
       // Reconstruct the month object
       return {
@@ -53,15 +53,12 @@ export default function UpdateHouseDetails() {
         return monthAIndex - monthBIndex;
       });
 
-      console.log("sorted month -------------------------- ", sortedMonths)
-
       // Reconstruct the month object
       return {
         ...rent,
         month: Object.fromEntries(sortedMonths)
       };
     });
-    console.log("now in data ====================== ", sortData)
 
     setEditableData(sortData)
 
@@ -146,16 +143,21 @@ export default function UpdateHouseDetails() {
           // Add the multiplied value to the sum
           cost += multipliedValue;
         }
-        updateObject.cost = cost;
+        updateObject.cost = Number(cost.toFixed(2));
         record.month[month] = updateObject;
       }
     })
     console.log("updated record================= ", updatedRecord)
+    console.log("in data ========================= ",  data)
     FirebaseDatastore.updateData(updatedRecord).catch(error => {
       console.error("Error Occured")
     });
     setDialogOpen(false);
+    console.log("loca ============ ", location.pathname)
+    navigate( location.pathname, { state: { data: updatedRecord }, replace: true });
+    console.log("location state==================== ", location.state)
   }
+  console.log("location staqtee==================== ", location.state)
 
   const updateRent = () => {
     // setDialogOpen(false);
@@ -177,7 +179,6 @@ export default function UpdateHouseDetails() {
   };
 
   const handleRentMonthChange = (e) => {
-    console.log("------------------- mint -- ", e.target.month, "--", e.target.reading, "--", e.target.value)
     setRentMonth(e.target.value);
   };
 
@@ -188,7 +189,6 @@ export default function UpdateHouseDetails() {
   const handleReadingChange = (e) => {
     const { name, value } = e.target;
     let readingArray = value.split(",")
-    console.log("reading array --------------------", readingArray)
     const numberArray = readingArray.map(value => parseInt(value.trim()));
     setReading(numberArray);
     setReadingStringArray(value);
@@ -236,7 +236,6 @@ export default function UpdateHouseDetails() {
             if (reading.year === new Date().getFullYear()) {
               return (
                 Object.entries(reading.month).map(([month, values]) => (
-                  console.log("what if values ================ ", values),
                   <Grid container key={month} alignItems="center">
                     <Grid item xs={2}>
                       <Typography variant="h8" gutterBottom>{month}</Typography>
@@ -245,7 +244,7 @@ export default function UpdateHouseDetails() {
                       <div style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                         {values.reading.map((value, index) => (
 
-                          <Typography key={index} variant="h8">{value} {index != values.reading.length-1 ? " | " : ""}</Typography>
+                          <Typography key={index} variant="h8">{value} {index != values.reading.length - 1 ? " | " : ""}</Typography>
 
                         ))}
                       </div>

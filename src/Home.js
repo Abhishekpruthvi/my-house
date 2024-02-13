@@ -14,10 +14,10 @@ import FirebaseDatastore from './FirebaseDatastore';
 
 export default function Home() {
 
-    const [groundFloor, setGroundFloor] = useState(false);
-    const [firstFloor, setFirstFloor] = useState(false);
-    const [secondFloor, setSecondFloor] = useState(false);
-    const [thirdFloor, setThirdFloor] = useState(false);
+    const [groundFloor, setGroundFloor] = useState(true);
+    const [firstFloor, setFirstFloor] = useState(true);
+    const [secondFloor, setSecondFloor] = useState(true);
+    const [thirdFloor, setThirdFloor] = useState(true);
     const [data, setData] = useState(null);
     const [rentalType, setRentalType] = useState('');
     const [addHouse, setAddHouse] = useState(false);
@@ -122,7 +122,6 @@ export default function Home() {
         });
         setRefresh(false);
     }, [refresh, houseDetails])
-    console.log("outsid lod =============== ", data);
 
     const handleViewMoreClick = (index) => {
         // Replace '/your-link' with the actual link you want to navigate to
@@ -205,7 +204,7 @@ export default function Home() {
                     {firstFloor ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
-                            {data.map((record, index) => {
+                            {data && data.map((record, index) => {
 
                                 if (record.floor === "First Floor") {
                                     return (
@@ -258,7 +257,7 @@ export default function Home() {
                     {secondFloor ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
-                            {data.map((record, index) => {
+                            {data && data.map((record, index) => {
 
                                 if (record.floor === "Second Floor") {
                                     return (
@@ -312,7 +311,7 @@ export default function Home() {
                     {thirdFloor ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
-                            { data && data.map((record, index) => {
+                            { data && data && data.map((record, index) => {
 
                                 if (record.floor === "Third Floor") {
                                     return (

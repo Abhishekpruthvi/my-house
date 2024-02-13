@@ -2,14 +2,14 @@ import logo from './logo.svg';
 import './App.css';
 import React, { useState } from 'react';
 import MenuIcon from '@mui/icons-material/Menu';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
-import { AppBar, Container, CssBaseline, Drawer, List, ListItem, Toolbar, Typography, IconButton } from '@mui/material';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { AppBar, Container, CssBaseline, Toolbar, Typography, IconButton } from '@mui/material';
 import GoogleSheetData from './GoogleSheetData';
 import Home from './Home';
 import HouseDetails from './HouseDetails'
 import UpdateDetails from './UpdateDetails.js'
 import UpdateHouseDetails from './UpdateHouseDetails.js'
-  
+
 function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
