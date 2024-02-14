@@ -19,17 +19,26 @@ export default function Home() {
     const [secondFloor, setSecondFloor] = useState(true);
     const [thirdFloor, setThirdFloor] = useState(true);
     const [data, setData] = useState(null);
-    const [rentalType, setRentalType] = useState('');
     const [addHouse, setAddHouse] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [houseDetails, setHouseDetails] = useState({ waterReading: [{ month: {}, year: new Date().getFullYear() }], rentDetails: [{ month: {}, year: new Date().getFullYear() }] })
-    const [type, setType] = useState('');
     const [refresh, setRefresh] = useState(false);
+    const [update, setUpdate] = useState(false);
 
     const floors = ["Ground Floor", "First Floor", "Second Floor", "Third Floor"]
     const houseNumbers = ["House 1", "House 2", "House 3", "House 4"]
     const shopNumbers = ["Shop 1", "Shop 2", "Shop 3", "Shop 4", "Shop 5"]
     const types = ["House", "Shop"]
+
+    const [floor, setFloor] = useState('');
+    const [type, setType] = useState('');
+    const [houseNumber, setHouseNumber] = useState('');
+    const [mobileNumber, setMobileNumber] = useState('');
+    const [rrNumber, setRrNumber] = useState('');
+    const [dateOfOccupancy, setDateOfOccupancy] = useState('');
+    const [name, setName] = useState('')
+
+
 
     const navigate = useNavigate();
 
@@ -42,40 +51,59 @@ export default function Home() {
     }
 
     const handleFloorChange = (e) => {
+        setFloor(e.target.value);
         let updatedHouse = houseDetails;
         updatedHouse.floor = e.target.value;
         setHouseDetails(updatedHouse);
     }
 
     const handleTypeChange = (e) => {
-        setType(e.target.value)
+        setType(e.target.value);
+        let updatedHouse = houseDetails;
+        updatedHouse.type = e.target.value;
+        setHouseDetails(updatedHouse);
     }
 
     const handleHouseChange = (e) => {
+        setHouseNumber(e.target.value);
         let updatedHouse = houseDetails;
         updatedHouse.houseNumber = e.target.value;
         setHouseDetails(updatedHouse);
     }
 
     const handleRrNumberChange = (e) => {
+        setRrNumber(e.target.value);
         let updatedHouse = houseDetails;
         updatedHouse.rrNumber = e.target.value;
         setHouseDetails(updatedHouse);
     }
 
     const handleDateOfOccupancy = (e) => {
+        console.log("date =============", e.target.value)
+        setDateOfOccupancy(e.target.value);
+
         let updatedHouse = houseDetails;
-        updatedHouse.dateOfOccupancy = new Date(e.target.value);
+        const dateObject = new Date(e.target.value)
+        const year = dateObject.getFullYear().toString().padStart(4, '0'); // Get the year and pad it with zeros if needed
+        const month = (dateObject.getMonth() + 1).toString().padStart(2, '0'); // Get the month (zero-based) and pad it with zeros if needed
+        const day = dateObject.getDate().toString().padStart(2, '0'); // Get the day of the month and pad it with zeros if needed
+
+        updatedHouse.dateOfOccupancy = `${year}-${month}-${day}`;
+
+        console.log("time statme ======================== ", updatedHouse.dateOfOccupancy);
         setHouseDetails(updatedHouse);
     }
 
+
     const handleNameChange = (e) => {
+        setName(e.target.value);
         let updatedHouse = houseDetails;
         updatedHouse.name = e.target.value;
         setHouseDetails(updatedHouse);
     }
 
     const handleMobileNumberChange = (e) => {
+        setMobileNumber(e.target.value)
         let updatedHouse = houseDetails;
         updatedHouse.mobileNumber = e.target.value;
         setHouseDetails(updatedHouse);
@@ -83,10 +111,17 @@ export default function Home() {
 
 
     const updateHouse = () => {
-        console.log("house details======================= {} ", houseDetails)
-        FirebaseDatastore.addData(houseDetails).catch(error => {
-            console.error("Error Occured")
-        });
+        console.log("house details======================= {} ", update, houseDetails)
+        if (update) {
+            FirebaseDatastore.updateData(houseDetails).catch(error => {
+                console.error("Error Occured")
+            });
+            setUpdate(false);
+        } else {
+            FirebaseDatastore.addData(houseDetails).catch(error => {
+                console.error("Error Occured")
+            });
+        }
         setDialogOpen(false);
         setRefresh(true);
         setHouseDetails({ waterReading: [{ month: {}, year: new Date().getFullYear() }], rentDetails: [{ month: {}, year: new Date().getFullYear() }] });
@@ -107,12 +142,16 @@ export default function Home() {
         setThirdFloor(!thirdFloor)
     }
 
-    const getDate = (seconds, nanoSeconds) => {
-        const date = new Date(seconds * 1000 + nanoSeconds / 1000000);
-        return date.toLocaleDateString();
-    }
-    useEffect(() => {
+    // const getDate = (seconds, nanoSeconds) => {
+    //     const date = new Date(seconds * 1000 + nanoSeconds / 1000000);
+    //     const year = date.getFullYear();
+    //     const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    //     const day = String(date.getDate()).padStart(2, '0');
+    //     return `${year}-${month}-${day}`;
 
+    // }
+    useEffect(() => {
+        console.log("----------------------triggered useeffect--------------")
         FirebaseDatastore.fetchData().then((response) => {
             console.log("In home ============", response);
             response.sort((a, b) => a.houseNumber.localeCompare(b.houseNumber));
@@ -121,17 +160,30 @@ export default function Home() {
             console.error("Error Occured")
         });
         setRefresh(false);
-    }, [refresh, houseDetails])
+        
+    }, [refresh])
 
-    const handleViewMoreClick = (index) => {
-        // Replace '/your-link' with the actual link you want to navigate to
-        navigate(`/my-house/update/${index}`, { state: { data: data, updateData: data[index] } });
-    };
 
     const handleViewMore = (record) => {
         // Replace '/your-link' with the actual link you want to navigate to
         navigate(`/my-house/update/${record.floor}/${record.houseNumber}`, { state: { data: record } });
     };
+
+    const handleUpdateHouse = (record) => {
+        console.log("update re3cordd ==================", record)
+        if (record.houseNumber.includes("House")) {
+            record.type = "House"
+        } else {
+            record.type = "Shop"
+        }
+        setHouseDetails(record)
+        setDialogOpen(true);
+        setUpdate(true);
+
+    }
+    console.log("house details =================== ", houseDetails)
+
+
 
     return (
         <Grid container>
@@ -151,7 +203,7 @@ export default function Home() {
                     {groundFloor ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
-                            {data &&  data.map((record, index) => {
+                            {data && data.map((record, index) => {
 
                                 if (record.floor === "Ground Floor") {
                                     return (
@@ -175,15 +227,18 @@ export default function Home() {
                                                 <div>
                                                     <div>{record.houseNumber}</div>
                                                     <div>{record.rrNumber}</div>
-                                                    <div>{getDate(record.dateOfOccupancy.seconds, record.dateOfOccupancy.nanoseconds)}</div>
+                                                    <div>{record.dateOfOccupancy}</div>
                                                     <div>{record.name}</div>
                                                     <div>{record.mobileNumber}</div>
                                                 </div>
                                             </div>
                                             <br />
-                                            <Button variant="contained" size="small" onClick={() => handleViewMore(record)} >
+                                            <Button variant="contained" size="small" style={{ margin: "5px" }} onClick={() => handleUpdateHouse(record)} >
+                                                Update
+                                            </Button>
+                                            <Button variant="contained" size="small" style={{ margin: "5px" }} onClick={() => handleViewMore(record)} >
                                                 View More
-                                    </Button>
+                                            </Button>
                                             <Divider style={{ margin: "20px" }} />
                                         </Typography>
                                     )
@@ -228,15 +283,18 @@ export default function Home() {
                                                 <div>
                                                     <div>{record.houseNumber}</div>
                                                     <div>{record.rrNumber}</div>
-                                                    <div>{getDate(record.dateOfOccupancy.seconds, record.dateOfOccupancy.nanoseconds)}</div>
+                                                    <div>{record.dateOfOccupancy}</div>
                                                     <div>{record.name}</div>
                                                     <div>{record.mobileNumber}</div>
                                                 </div>
                                             </div>
                                             <br />
-                                            <Button variant="contained" size="small" onClick={() => handleViewMore(record)} >
+                                            <Button variant="contained" size="small" style={{ margin: "5px" }} onClick={() => handleUpdateHouse(record)} >
+                                                Update
+                                            </Button>
+                                            <Button variant="contained" size="small" style={{ margin: "5px" }} onClick={() => handleViewMore(record)} >
                                                 View More
-        </Button>
+                                            </Button>
                                             <Divider style={{ margin: "20px" }} />
                                         </Typography>
                                     )
@@ -281,15 +339,18 @@ export default function Home() {
                                                 <div>
                                                     <div>{record.houseNumber}</div>
                                                     <div>{record.rrNumber}</div>
-                                                    <div>{getDate(record.dateOfOccupancy.seconds, record.dateOfOccupancy.nanoseconds)}</div>
+                                                    <div>{record.dateOfOccupancy}</div>
                                                     <div>{record.name}</div>
                                                     <div>{record.mobileNumber}</div>
                                                 </div>
                                             </div>
                                             <br />
-                                            <Button variant="contained" size="small" onClick={() => handleViewMore(record)} >
+                                            <Button variant="contained" size="small" style={{ margin: "5px" }} onClick={() => handleUpdateHouse(record)} >
+                                                Update
+                                            </Button>
+                                            <Button variant="contained" size="small" style={{ margin: "5px" }} onClick={() => handleViewMore(record)} >
                                                 View More
-        </Button>
+                                            </Button>
                                             <Divider style={{ margin: "20px" }} />
                                         </Typography>
                                     )
@@ -311,7 +372,7 @@ export default function Home() {
                     {thirdFloor ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
-                            { data && data && data.map((record, index) => {
+                            {data && data && data.map((record, index) => {
 
                                 if (record.floor === "Third Floor") {
                                     return (
@@ -335,15 +396,18 @@ export default function Home() {
                                                 <div>
                                                     <div>{record.houseNumber}</div>
                                                     <div>{record.rrNumber}</div>
-                                                    <div>{getDate(record.dateOfOccupancy.seconds, record.dateOfOccupancy.nanoseconds)}</div>
+                                                    <div>{record.dateOfOccupancy}</div>
                                                     <div>{record.name}</div>
                                                     <div>{record.mobileNumber}</div>
                                                 </div>
                                             </div>
                                             <br />
-                                            <Button variant="contained" size="small" onClick={() => handleViewMore(record)} >
+                                            <Button variant="contained" size="small" style={{ margin: "5px" }} onClick={() => handleUpdateHouse(record)} >
+                                                Update
+                                            </Button>
+                                            <Button variant="contained" size="small" style={{ margin: "5px" }} onClick={() => handleViewMore(record)} >
                                                 View More
-        </Button>
+                                            </Button>
                                             <Divider style={{ margin: "20px" }} />
                                         </Typography>
                                     )
@@ -361,133 +425,134 @@ export default function Home() {
 
                 </Paper>
 
-
-                <Dialog open={dialogOpen} onClose={handleClose}>
-                    <DialogTitle>Add Rent</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText>Enter the Month and Rent</DialogContentText>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="floor"
-                            name="floor"
-                            label="floor"
-                            select
-                            fullWidth
-                            value={houseDetails.floor}
-                            onChange={handleFloorChange}
-                        >
-                            {floors.map((floor, index) => (
-                                <MenuItem key={index} value={floor}>
-                                    {floor}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-
-                        <TextField
-                            margin="dense"
-                            id="type"
-                            name="type"
-                            label="Type"
-                            select
-                            fullWidth
-                            value={type}
-                            onChange={handleTypeChange}
-                        >
-                            {types.map((type, index) => (
-                                <MenuItem key={index} value={type}>
-                                    {type}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                        {type === "House" ?
+                {houseDetails &&
+                    <Dialog open={dialogOpen} onClose={handleClose}>
+                        <DialogTitle>{update ? "Update House" : "Add House"}</DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>Enter House Details</DialogContentText>
                             <TextField
+                                autoFocus
                                 margin="dense"
-                                id="rent"
-                                name="housenumber"
-                                label="House Number"
+                                id="floor"
+                                name="floor"
+                                label="floor"
                                 select
                                 fullWidth
-                                value={houseDetails.houseNumber}
-                                onChange={handleHouseChange}
+                                value={houseDetails.floor}
+                                onChange={handleFloorChange}
                             >
-                                {houseNumbers.map((house, index) => (
-                                    <MenuItem key={index} value={house}>
-                                        {house}
+                                {floors.map((floor, index) => (
+                                    <MenuItem key={index} value={floor}>
+                                        {floor}
                                     </MenuItem>
                                 ))}
                             </TextField>
-                            :
+
                             <TextField
                                 margin="dense"
-                                id="rent"
-                                name="housenumber"
-                                label="House Number"
+                                id="type"
+                                name="type"
+                                label="Type"
                                 select
                                 fullWidth
-                                value={houseDetails.houseNumber}
-                                onChange={handleHouseChange}
+                                value={houseDetails.type}
+                                onChange={handleTypeChange}
                             >
-                                {shopNumbers.map((shop, index) => (
-                                    <MenuItem key={index} value={shop}>
-                                        {shop}
+                                {types.map((type, index) => (
+                                    <MenuItem key={index} value={type}>
+                                        {type}
                                     </MenuItem>
                                 ))}
                             </TextField>
-                        }
+                            {houseDetails.type === "House" ?
+                                <TextField
+                                    margin="dense"
+                                    id="rent"
+                                    name="housenumber"
+                                    label="House Number"
+                                    select
+                                    fullWidth
+                                    value={houseDetails.houseNumber}
+                                    onChange={handleHouseChange}
+                                >
+                                    {houseNumbers.map((house, index) => (
+                                        <MenuItem key={index} value={house}>
+                                            {house}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+                                :
+                                <TextField
+                                    margin="dense"
+                                    id="rent"
+                                    name="housenumber"
+                                    label="Shop Number"
+                                    select
+                                    fullWidth
+                                    value={houseDetails.houseNumber}
+                                    onChange={handleHouseChange}
+                                >
+                                    {shopNumbers.map((shop, index) => (
+                                        <MenuItem key={index} value={shop}>
+                                            {shop}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+                            }
 
-                        <TextField
-                            margin="dense"
-                            id="rrnumber"
-                            name="rrnumber"
-                            label="RR Number"
-                            type="text"
-                            fullWidth
-                            value={houseDetails.rrNumber}
-                            onChange={handleRrNumberChange}
-                        />
+                            <TextField
+                                margin="dense"
+                                id="rrnumber"
+                                name="rrnumber"
+                                label="RR Number"
+                                type="text"
+                                fullWidth
+                                value={houseDetails.rrNumber}
+                                onChange={handleRrNumberChange}
+                            />
 
-                        <TextField
-                            margin="dense"
-                            id="doc"
-                            name="dateofoccupancy"
-                            label="Date of Occupancy"
-                            type="date"
-                            fullWidth
-                            value={houseDetails.dateOfOccupancy}
-                            onChange={handleDateOfOccupancy}
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
+                            <TextField
+                                margin="dense"
+                                id="doc"
+                                name="dateofoccupancy"
+                                label="Date of Occupancy"
+                                type="date"
+                                fullWidth
+                                value={houseDetails.dateOfOccupancy}
+                                onChange={handleDateOfOccupancy}
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
 
-                        />
+                            />
 
-                        <TextField
-                            margin="dense"
-                            id="name"
-                            name="name"
-                            label="Name"
-                            type="text"
-                            fullWidth
-                            value={houseDetails.name}
-                            onChange={handleNameChange}
-                        />
-                        <TextField
-                            margin="dense"
-                            id="mobilenumber"
-                            name="mobilenumber"
-                            label="Mobile Number"
-                            type="number"
-                            fullWidth
-                            value={houseDetails.mobileNumber}
-                            onChange={handleMobileNumberChange}
-                        />
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleClose}>Cancel</Button>
-                        <Button onClick={updateHouse}>Save</Button>
-                    </DialogActions>
-                </Dialog>
+                            <TextField
+                                margin="dense"
+                                id="name"
+                                name="name"
+                                label="Name"
+                                type="text"
+                                fullWidth
+                                value={houseDetails.name}
+                                onChange={handleNameChange}
+                            />
+                            <TextField
+                                margin="dense"
+                                id="mobilenumber"
+                                name="mobilenumber"
+                                label="Mobile Number"
+                                type="number"
+                                fullWidth
+                                value={houseDetails.mobileNumber}
+                                onChange={handleMobileNumberChange}
+                            />
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleClose}>Cancel</Button>
+                            <Button onClick={updateHouse}>Save</Button>
+                        </DialogActions>
+                    </Dialog>
+                }
             </Grid>
         </Grid>
     )
