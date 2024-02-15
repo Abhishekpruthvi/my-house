@@ -41,6 +41,7 @@ function App() {
 
       <Container component="main" sx={{ flexGrow: 1, padding: 3, marginTop: 5 }}>
         <Routes>
+        <Route path="/" element={<Home />} />
           <Route path="/my-house" element={<Home />} />
           <Route path="/my-house/details/:index" element={<HouseDetails />} />
           <Route path="/my-house/update/:index" element={<UpdateDetails />} />
