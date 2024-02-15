@@ -2,7 +2,7 @@ import logo from './logo.svg';
 import './App.css';
 import React, { useState } from 'react';
 import MenuIcon from '@mui/icons-material/Menu';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { AppBar, Container, CssBaseline, Toolbar, Typography, IconButton } from '@mui/material';
 import Home from './Home';
 import HouseDetails from './HouseDetails'
@@ -17,7 +17,7 @@ function App() {
   };
 
   return (
-    <Router>
+    <>
       <CssBaseline />
       <AppBar position="fixed">
         <Toolbar>
@@ -48,7 +48,7 @@ function App() {
           <Route path="/contact" element={<Contact />} /> */}
         </Routes>
       </Container>
-    </Router>
+      </>
   );
 }
 
