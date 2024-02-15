@@ -4,7 +4,6 @@ import {
   Grid, Paper, Typography, Button, Divider, TextField, Dialog, DialogActions, DialogContent,
   DialogContentText, DialogTitle, MenuItem, Checkbox
 } from '@mui/material';
-import GoogleSheetApi from './GoogleSheetApi';
 import EditIcon from '@mui/icons-material/Edit';
 import FirebaseDatastore from './FirebaseDatastore';
 
@@ -23,7 +22,6 @@ export default function UpdateHouseDetails() {
   const [rentMonth, setRentMonth] = useState('');
   const [rent, setRent] = useState(0);
   const [rentDialogOpen, setRentDialogOpen] = useState(false);
-  const [checkedItems, setCheckedItems] = useState({});
 
 
   const navigate = useNavigate();
@@ -36,7 +34,6 @@ export default function UpdateHouseDetails() {
     years.push(year);
   }
 
-  console.log("years--------------------------", years)
 
   useEffect(() => {
     let sortData = { ...editableData };
@@ -131,16 +128,12 @@ export default function UpdateHouseDetails() {
         }
 
         if (currentIndex === 0) {
-          console.log("in if=========================")
           prevMonthReading = updatedRecord.waterReading.find(entry => entry.year === (year - 1))?.month.December;
-          console.log("check ------------------ ", prevMonthReading)
-          prevMonthReading = prevMonthReading ? prevMonthReading : defaultPrevMonthReading
         } else {
-          console.log("in else=========================")
           prevMonthReading = record.month[months[currentIndex - 1]];
-          console.log("preve montn========== ", prevMonthReading);
-          prevMonthReading = prevMonthReading ? prevMonthReading : defaultPrevMonthReading
         }
+
+        prevMonthReading = prevMonthReading ? prevMonthReading : defaultPrevMonthReading
         let cost = 0;
 
         for (let i = 0; i < reading.length; i++) {
@@ -176,9 +169,7 @@ export default function UpdateHouseDetails() {
       console.error("Error Occured")
     });
     setDialogOpen(false);
-    console.log("loca ============ ", location.pathname)
     navigate(location.pathname, { state: { data: updatedRecord }, replace: true });
-    console.log("location state==================== ", location.state)
   }
 
   const updateRent = () => {
@@ -208,7 +199,6 @@ export default function UpdateHouseDetails() {
     }
 
 
-    console.log("updated Rent record================= ", updatedRecord)
     FirebaseDatastore.updateData(updatedRecord).catch(error => {
       console.error("Error Occured")
     });
@@ -241,16 +231,16 @@ export default function UpdateHouseDetails() {
   };
 
   const handleCheckBox = (e, values) => {
-    console.log("cec === ", e.target.checked)
     values.collected = e.target.checked;
-    console.log("final edit ===== ", editableData);
     FirebaseDatastore.updateData(editableData).catch(error => {
       console.error("Error Occured")
     });
     navigate(location.pathname, { state: { data: editableData }, replace: true });
 
   };
-  { console.log("after check box ===================== ", editableData) }
+
+
+
   return (
     <Grid container spacing={2} justifyContent="center" direction="column" alignItems="center">
 
@@ -302,7 +292,7 @@ export default function UpdateHouseDetails() {
                 <Divider />
               </Grid>
               <Grid item xs={4}>
-                <Typography variant="h7" gutterBottom>Cost</Typography>
+                <Typography variant="h7" gutterBottom>Cost | Paid</Typography>
                 <Divider />
               </Grid>
               {/* <Grid item xs={1}>
@@ -313,7 +303,7 @@ export default function UpdateHouseDetails() {
                 <Typography variant="h7" gutterBottom>Modify</Typography>
                 <Divider />
               </Grid>
-              
+
             </Grid>
 
             {editableData.waterReading.map(reading => {
@@ -335,7 +325,7 @@ export default function UpdateHouseDetails() {
                       </Grid>
                       <Grid item xs={4}>
                         <>
-                          <Typography variant="h8" gutterBottom>{values.cost}</Typography>
+                          <Typography variant="h8" gutterBottom>{values.cost} |</Typography>
                           <Checkbox checked={values.collected} onChange={(e) => handleCheckBox(e, values)} />
                         </>
                       </Grid>
@@ -374,7 +364,7 @@ export default function UpdateHouseDetails() {
                 <Divider />
               </Grid>
               <Grid item xs={7}>
-                <Typography variant="h7" gutterBottom>Reading</Typography>
+                <Typography variant="h7" gutterBottom>Amount Received</Typography>
                 <Divider />
               </Grid>
               <Grid item xs={2}>

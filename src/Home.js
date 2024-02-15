@@ -79,7 +79,6 @@ export default function Home() {
     }
 
     const handleDateOfOccupancy = (e) => {
-        console.log("date =============", e.target.value)
         setDateOfOccupancy(e.target.value);
 
         let updatedHouse = houseDetails;
@@ -90,7 +89,6 @@ export default function Home() {
 
         updatedHouse.dateOfOccupancy = `${year}-${month}-${day}`;
 
-        console.log("time statme ======================== ", updatedHouse.dateOfOccupancy);
         setHouseDetails(updatedHouse);
     }
 
@@ -111,7 +109,6 @@ export default function Home() {
 
 
     const updateHouse = () => {
-        console.log("house details======================= {} ", update, houseDetails)
         if (update) {
             FirebaseDatastore.updateData(houseDetails).catch(error => {
                 console.error("Error Occured")
@@ -151,9 +148,7 @@ export default function Home() {
 
     // }
     useEffect(() => {
-        console.log("----------------------triggered useeffect--------------")
         FirebaseDatastore.fetchData().then((response) => {
-            console.log("In home ============", response);
             response.sort((a, b) => a.houseNumber.localeCompare(b.houseNumber));
             setData(response)
         }).catch(error => {
@@ -170,7 +165,6 @@ export default function Home() {
     };
 
     const handleUpdateHouse = (record) => {
-        console.log("update re3cordd ==================", record)
         if (record.houseNumber.includes("House")) {
             record.type = "House"
         } else {
@@ -181,7 +175,6 @@ export default function Home() {
         setUpdate(true);
 
     }
-    console.log("house details =================== ", houseDetails)
 
 
 
