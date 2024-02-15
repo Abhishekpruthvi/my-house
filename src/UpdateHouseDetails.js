@@ -19,13 +19,23 @@ export default function UpdateHouseDetails() {
   const [reading, setReading] = useState([]);
   const [readingStringArray, setReadingStringArray] = useState('');
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const [year, setYear] = useState(new Date().getFullYear());
   const [rentMonth, setRentMonth] = useState('');
-  const [rent, setRent] = useState('');
+  const [rent, setRent] = useState(0);
   const [rentDialogOpen, setRentDialogOpen] = useState(false);
 
 
   const navigate = useNavigate();
 
+
+  const years = [];
+  const currentYear = 2000;
+  const lastYear = 2100;
+  for (let year = currentYear; year <= lastYear; year++) {
+    years.push(year);
+  }
+
+  console.log("years--------------------------", years)
 
   useEffect(() => {
     let sortData = { ...editableData };
@@ -101,11 +111,10 @@ export default function UpdateHouseDetails() {
   }
 
   const updateReading = () => {
-    // setDialogOpen(false);
+    let isUpdate = false;
     let updatedRecord = editableData;
     updatedRecord.waterReading.map(record => {
-      if (record.year === new Date().getFullYear()) {
-        console.log("record ===================", record)
+      if (record.year === year) {
         let updateObject = {
           reading: reading,
           cost: 0
@@ -120,58 +129,88 @@ export default function UpdateHouseDetails() {
           defaultPrevMonthReading.reading.push(reading[1] - 2000);
         }
 
-        // If the current month is the first month, return undefined
         if (currentIndex === 0) {
-          // or handle the edge case as per your requirement
-
-          prevMonthReading = updatedRecord.waterReading.find(entry => entry.year === (new Date().getFullYear()) - 1)?.month.December?.reading;
+          console.log("in if=========================")
+          prevMonthReading = updatedRecord.waterReading.find(entry => entry.year === (year-1))?.month.December;
+          console.log("check ------------------ ", prevMonthReading)
           prevMonthReading = prevMonthReading ? prevMonthReading : defaultPrevMonthReading
-          console.log("in IF prev month reading ============== ", prevMonthReading)
         } else {
+          console.log("in else=========================")
           prevMonthReading = record.month[months[currentIndex - 1]];
-          console.log("in else prev month reading ============== ", prevMonthReading)
         }
         let cost = 0;
 
         for (let i = 0; i < reading.length; i++) {
-          // Subtract corresponding elements from array2 from array1
           const difference = reading[i] - prevMonthReading.reading[i];
-
-          // Multiply the difference by 0.15
           const multipliedValue = difference * 0.15;
-
-          // Add the multiplied value to the sum
           cost += multipliedValue;
         }
+
         updateObject.cost = Number(cost.toFixed(2));
         record.month[month] = updateObject;
+        isUpdate = true;
       }
     })
-    console.log("updated record================= ", updatedRecord)
-    console.log("in data ========================= ",  data)
+    
+    if(isUpdate === false) {
+      let updateObject = {
+        reading: reading,
+        cost: 0
+      }
+
+      let newReading = {
+        year: year,
+        month: {
+          [month]:updateObject
+        }
+      }
+
+      updatedRecord.waterReading.push(newReading);
+
+    }
+
     FirebaseDatastore.updateData(updatedRecord).catch(error => {
       console.error("Error Occured")
     });
     setDialogOpen(false);
     console.log("loca ============ ", location.pathname)
-    navigate( location.pathname, { state: { data: updatedRecord }, replace: true });
+    navigate(location.pathname, { state: { data: updatedRecord }, replace: true });
     console.log("location state==================== ", location.state)
   }
-  console.log("location staqtee==================== ", location.state)
 
   const updateRent = () => {
     // setDialogOpen(false);
+    let isUpdate = false;
     let updatedRecord = editableData;
     updatedRecord.rentDetails.map(rentDetail => {
-      if (rentDetail.year === new Date().getFullYear()) {
+      if (rentDetail.year === year) {
         rentDetail.month[rentMonth] = rent;
+        isUpdate = true;
       }
     })
+
+    if(isUpdate === false) {
+      let updateObject = {
+        reading: reading,
+        cost: 0
+      }
+
+      let newReading = {
+        year: year,
+        month: {
+          [rentMonth]:rent
+        }
+      }
+      updatedRecord.rentDetails.push(newReading);
+    }
+
+
     console.log("updated Rent record================= ", updatedRecord)
     FirebaseDatastore.updateData(updatedRecord).catch(error => {
       console.error("Error Occured")
     });
     setRentDialogOpen(false);
+    navigate(location.pathname, { state: { data: updatedRecord }, replace: true });
   }
 
   const handleMonthChange = (e) => {
@@ -183,7 +222,7 @@ export default function UpdateHouseDetails() {
   };
 
   const handleRentChange = (e) => {
-    setRent(e.target.value);
+    setRent(parseInt(e.target.value));
   };
 
   const handleReadingChange = (e) => {
@@ -194,22 +233,52 @@ export default function UpdateHouseDetails() {
     setReadingStringArray(value);
   }
 
+  const handleYearChange = (e) => {
+    setYear(e.target.value);
+  };
+
+
   return (
     <Grid container spacing={2} justifyContent="center" direction="column" alignItems="center">
 
-      <Grid item>
+      <Grid item margin="20px">
         <Typography variant="h6">
           {editableData.floor} | {editableData.houseNumber}
         </Typography>
       </Grid>
 
+      <Grid container spacing={2}  justifyContent="center"  alignItems="center">
+        <Grid item xs={10} md={4}>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="year"
+            name="year"
+            label="Year"
+            select
+            fullWidth
+            value={year}
+            onChange={handleYearChange}
+          >
+            {years.map((year, index) => (
+              <MenuItem key={index} value={year}>
+                {year}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
+
+
+      </Grid>
       <Grid item width="100%">
+
         <Paper style={{ padding: "2px", textAlign: 'center' }}>
           <Typography variant="h6" gutterBottom>
             Water Reading
           </Typography>
 
           <Grid container>
+
             <Grid item xs={2}>
               <Typography variant="h7" gutterBottom>Month</Typography>
               <Divider />
@@ -233,7 +302,7 @@ export default function UpdateHouseDetails() {
           </Grid>
 
           {editableData.waterReading.map(reading => {
-            if (reading.year === new Date().getFullYear()) {
+            if (reading.year === year) {
               return (
                 Object.entries(reading.month).map(([month, values]) => (
                   <Grid container key={month} alignItems="center">
@@ -297,7 +366,7 @@ export default function UpdateHouseDetails() {
           </Grid>
 
           {editableData.rentDetails.map(rent => {
-            if (rent.year === new Date().getFullYear()) {
+            if (rent.year === year) {
               return (
                 Object.entries(rent.month).map(([month, rent]) => (
                   <Grid container key={month} alignItems="center">
