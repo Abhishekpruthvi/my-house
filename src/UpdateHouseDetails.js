@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Grid, Paper, Typography, Button, Divider, TextField, Dialog, DialogActions, DialogContent,
-  DialogContentText, DialogTitle, MenuItem
+  DialogContentText, DialogTitle, MenuItem, Checkbox
 } from '@mui/material';
 import GoogleSheetApi from './GoogleSheetApi';
 import EditIcon from '@mui/icons-material/Edit';
@@ -23,6 +23,7 @@ export default function UpdateHouseDetails() {
   const [rentMonth, setRentMonth] = useState('');
   const [rent, setRent] = useState(0);
   const [rentDialogOpen, setRentDialogOpen] = useState(false);
+  const [checkedItems, setCheckedItems] = useState({});
 
 
   const navigate = useNavigate();
@@ -131,12 +132,14 @@ export default function UpdateHouseDetails() {
 
         if (currentIndex === 0) {
           console.log("in if=========================")
-          prevMonthReading = updatedRecord.waterReading.find(entry => entry.year === (year-1))?.month.December;
+          prevMonthReading = updatedRecord.waterReading.find(entry => entry.year === (year - 1))?.month.December;
           console.log("check ------------------ ", prevMonthReading)
           prevMonthReading = prevMonthReading ? prevMonthReading : defaultPrevMonthReading
         } else {
           console.log("in else=========================")
           prevMonthReading = record.month[months[currentIndex - 1]];
+          console.log("preve montn========== ", prevMonthReading);
+          prevMonthReading = prevMonthReading ? prevMonthReading : defaultPrevMonthReading
         }
         let cost = 0;
 
@@ -151,8 +154,8 @@ export default function UpdateHouseDetails() {
         isUpdate = true;
       }
     })
-    
-    if(isUpdate === false) {
+
+    if (isUpdate === false) {
       let updateObject = {
         reading: reading,
         cost: 0
@@ -161,7 +164,7 @@ export default function UpdateHouseDetails() {
       let newReading = {
         year: year,
         month: {
-          [month]:updateObject
+          [month]: updateObject
         }
       }
 
@@ -189,7 +192,7 @@ export default function UpdateHouseDetails() {
       }
     })
 
-    if(isUpdate === false) {
+    if (isUpdate === false) {
       let updateObject = {
         reading: reading,
         cost: 0
@@ -198,7 +201,7 @@ export default function UpdateHouseDetails() {
       let newReading = {
         year: year,
         month: {
-          [rentMonth]:rent
+          [rentMonth]: rent
         }
       }
       updatedRecord.rentDetails.push(newReading);
@@ -237,7 +240,17 @@ export default function UpdateHouseDetails() {
     setYear(e.target.value);
   };
 
+  const handleCheckBox = (e, values) => {
+    console.log("cec === ", e.target.checked)
+    values.collected = e.target.checked;
+    console.log("final edit ===== ", editableData);
+    FirebaseDatastore.updateData(editableData).catch(error => {
+      console.error("Error Occured")
+    });
+    navigate(location.pathname, { state: { data: editableData }, replace: true });
 
+  };
+  { console.log("after check box ===================== ", editableData) }
   return (
     <Grid container spacing={2} justifyContent="center" direction="column" alignItems="center">
 
@@ -247,7 +260,7 @@ export default function UpdateHouseDetails() {
         </Typography>
       </Grid>
 
-      <Grid container spacing={2}  justifyContent="center"  alignItems="center">
+      <Grid container spacing={2} justifyContent="center" alignItems="center">
         <Grid item xs={10} md={4}>
           <TextField
             autoFocus
@@ -270,135 +283,140 @@ export default function UpdateHouseDetails() {
 
 
       </Grid>
-      <Grid item width="100%">
+      <Grid container>
+        <Grid item xs={12}>
 
-        <Paper style={{ padding: "2px", textAlign: 'center' }}>
-          <Typography variant="h6" gutterBottom>
-            Water Reading
+          <Paper style={{ textAlign: 'center' }}>
+            <Typography variant="h6" gutterBottom>
+              Water Reading
           </Typography>
 
-          <Grid container>
+            <Grid container spacing={-2}>
 
-            <Grid item xs={2}>
-              <Typography variant="h7" gutterBottom>Month</Typography>
-              <Divider />
-            </Grid>
-            <Grid item xs={6}>
-              <Typography variant="h7" gutterBottom>Reading</Typography>
-              <Divider />
-            </Grid>
-            <Grid item xs={2}>
-              <Typography variant="h7" gutterBottom>Cost</Typography>
-              <Divider />
-            </Grid>
-            {/* <Grid item xs={1}>
+              <Grid item xs={2}>
+                <Typography variant="h7" gutterBottom>Month</Typography>
+                <Divider />
+              </Grid>
+              <Grid item xs={5}>
+                <Typography variant="h7" gutterBottom>Reading</Typography>
+                <Divider />
+              </Grid>
+              <Grid item xs={4}>
+                <Typography variant="h7" gutterBottom>Cost</Typography>
+                <Divider />
+              </Grid>
+              {/* <Grid item xs={1}>
               <Typography variant="h7" gutterBottom>Collected</Typography>
               <Divider/>
             </Grid> */}
-            <Grid item xs={2}>
-              <Typography variant="h7" gutterBottom>Modify</Typography>
-              <Divider />
+              <Grid item xs={1}>
+                <Typography variant="h7" gutterBottom>Modify</Typography>
+                <Divider />
+              </Grid>
+              
             </Grid>
-          </Grid>
 
-          {editableData.waterReading.map(reading => {
-            if (reading.year === year) {
-              return (
-                Object.entries(reading.month).map(([month, values]) => (
-                  <Grid container key={month} alignItems="center">
-                    <Grid item xs={2}>
-                      <Typography variant="h8" gutterBottom>{month}</Typography>
+            {editableData.waterReading.map(reading => {
+              if (reading.year === year) {
+                return (
+                  Object.entries(reading.month).map(([month, values]) => (
+                    <Grid container key={month} alignItems="center">
+                      <Grid item xs={2}>
+                        <Typography variant="h8" gutterBottom>{month}</Typography>
+                      </Grid>
+                      <Grid item xs={5}>
+                        <div style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                          {values.reading.map((value, index) => (
+
+                            <Typography key={index} variant="h8">{value} {index != values.reading.length - 1 ? " | " : ""}</Typography>
+
+                          ))}
+                        </div>
+                      </Grid>
+                      <Grid item xs={4}>
+                        <>
+                          <Typography variant="h8" gutterBottom>{values.cost}</Typography>
+                          <Checkbox checked={values.collected} onChange={(e) => handleCheckBox(e, values)} />
+                        </>
+                      </Grid>
+                      <Grid item xs={1}>
+                        <Button color="primary" size="small" onClick={() => handleEditOpen(month, values)}>
+                          <EditIcon style={{ cursor: 'pointer', marginBottom: "10px", marginLeft: "-25px" }} />
+                        </Button>
+
+                      </Grid>
+
                     </Grid>
-                    <Grid item xs={6}>
-                      <div style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                        {values.reading.map((value, index) => (
+                  ))
+                )
+              }
+            })}
 
-                          <Typography key={index} variant="h8">{value} {index != values.reading.length - 1 ? " | " : ""}</Typography>
-
-                        ))}
-                      </div>
-                    </Grid>
-                    <Grid item xs={2}>
-                      <Typography variant="h8" gutterBottom>{values.cost}</Typography>
-                    </Grid>
-                    <Grid item xs={2} justifyContent="center">
-                      <Button color="primary" size="small" onClick={() => handleEditOpen(month, values)}>
-                        <EditIcon style={{ cursor: 'pointer', marginBottom: "10px" }} />
-                      </Button>
-
-                    </Grid>
-
-                  </Grid>
-                ))
-              )
-            }
-          })}
-
-          <Grid container justifyContent="center" marginTop="20px">
-            <Button variant="contained" color="primary" size="small" style={{ marginBottom: "10px" }} onClick={handleOpen}>
-              Add Reading
+            <Grid container justifyContent="center" marginTop="20px">
+              <Button variant="contained" color="primary" size="small" style={{ marginBottom: "10px" }} onClick={handleOpen}>
+                Add Reading
             </Button>
-          </Grid>
-        </Paper>
+            </Grid>
+          </Paper>
+        </Grid>
       </Grid>
-
-
       {/* ---------------------------------------------------------------------------------------------------- */}
 
-      <Grid item width="100%">
-        <Paper style={{ padding: '2px', textAlign: 'center' }}>
-          <Typography variant="h6" gutterBottom>
-            Rent Details
+      <Grid container marginTop={"20px"}>
+        <Grid item xs={12} >
+          <Paper style={{ padding: '2px', textAlign: 'center' }}>
+            <Typography variant="h6" gutterBottom>
+              Rent Details
                     </Typography>
-          <Grid container>
-            <Grid item xs={3}>
-              <Typography variant="h7" gutterBottom>Month</Typography>
-              <Divider />
+            <Grid container>
+              <Grid item xs={3}>
+                <Typography variant="h7" gutterBottom>Month</Typography>
+                <Divider />
+              </Grid>
+              <Grid item xs={7}>
+                <Typography variant="h7" gutterBottom>Reading</Typography>
+                <Divider />
+              </Grid>
+              <Grid item xs={2}>
+                <Typography variant="h7" gutterBottom>Modify</Typography>
+                <Divider />
+              </Grid>
             </Grid>
-            <Grid item xs={7}>
-              <Typography variant="h7" gutterBottom>Reading</Typography>
-              <Divider />
-            </Grid>
-            <Grid item xs={2}>
-              <Typography variant="h7" gutterBottom>Modify</Typography>
-              <Divider />
-            </Grid>
-          </Grid>
 
-          {editableData.rentDetails.map(rent => {
-            if (rent.year === year) {
-              return (
-                Object.entries(rent.month).map(([month, rent]) => (
-                  <Grid container key={month} alignItems="center">
-                    <Grid item xs={3}>
-                      <Typography variant="h8" gutterBottom>{month}</Typography>
-                    </Grid>
-                    <Grid item xs={7}>
-                      <Typography variant="h8">{rent}</Typography>
-                    </Grid>
+            {editableData.rentDetails.map(rent => {
+              if (rent.year === year) {
+                return (
+                  Object.entries(rent.month).map(([month, rent]) => (
+                    <Grid container key={month} alignItems="center">
+                      <Grid item xs={3}>
+                        <Typography variant="h8" gutterBottom>{month}</Typography>
+                      </Grid>
+                      <Grid item xs={7}>
+                        <Typography variant="h8">{rent}</Typography>
+                      </Grid>
 
-                    <Grid item xs={2} justifyContent="flex-end">
-                      <Button color="primary" size="small" onClick={() => handleRentEditOpen(month, rent)}>
-                        <EditIcon style={{ cursor: 'pointer', marginBottom: "10px" }} />
-                      </Button>
+                      <Grid item xs={2} justifyContent="flex-end">
+                        <Button color="primary" size="small" onClick={() => handleRentEditOpen(month, rent)}>
+                          <EditIcon style={{ cursor: 'pointer', marginBottom: "10px" }} />
+                        </Button>
+
+                      </Grid>
 
                     </Grid>
+                  ))
+                )
+              }
+            })}
 
-                  </Grid>
-                ))
-              )
-            }
-          })}
-
-          <Grid container justifyContent="center" marginTop="20px">
-            <Button variant="contained" color="primary" size="small" style={{ marginBottom: "10px" }} onClick={handleRentOpen}>
-              Add Rent
+            <Grid container justifyContent="center" marginTop="20px">
+              <Button variant="contained" color="primary" size="small" style={{ marginBottom: "10px" }} onClick={handleRentOpen}>
+                Add Rent
             </Button>
-          </Grid>
+            </Grid>
 
-        </Paper>
+          </Paper>
+        </Grid>
       </Grid>
-
 
       <Dialog open={dialogOpen} onClose={handleClose}>
         <DialogTitle>Add Reading</DialogTitle>
