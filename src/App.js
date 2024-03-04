@@ -15,6 +15,7 @@ function App() {
 
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
+    // localStorage.setItem("selectedFloor","");
   };
 
   return (

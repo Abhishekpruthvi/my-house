@@ -14,10 +14,11 @@ import FirebaseDatastore from './FirebaseDatastore';
 
 export default function Home() {
 
-    const [groundFloor, setGroundFloor] = useState(true);
-    const [firstFloor, setFirstFloor] = useState(true);
-    const [secondFloor, setSecondFloor] = useState(true);
-    const [thirdFloor, setThirdFloor] = useState(true);
+    // const [groundFloor, setGroundFloor] = useState(true);
+    // const [firstFloor, setFirstFloor] = useState(true);
+    // const [secondFloor, setSecondFloor] = useState(true);
+    // const [thirdFloor, setThirdFloor] = useState(true);
+    const [selectedFloor, setSelectedFloor] = useState([]);
     const [data, setData] = useState(null);
     const [addHouse, setAddHouse] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -124,29 +125,18 @@ export default function Home() {
         setHouseDetails({ waterReading: [{ month: {}, year: new Date().getFullYear() }], rentDetails: [{ month: {}, year: new Date().getFullYear() }] });
     }
 
-    const handleGroundFloor = () => {
-        setGroundFloor(!groundFloor)
+    const handleSelectedFloor = (floor) => {
+        if(selectedFloor.includes(floor)) {
+            let updateFloor = selectedFloor;
+            updateFloor = updateFloor.filter(item => item !== floor)
+            setSelectedFloor(updateFloor)
+        } else {
+            setSelectedFloor([...selectedFloor, floor])
+        }
+        
     }
 
-    const handleFirstFloor = () => {
-        setFirstFloor(!firstFloor)
-    }
-
-    const handleSecondFloor = () => {
-        setSecondFloor(!secondFloor)
-    }
-    const handleThirdFloor = () => {
-        setThirdFloor(!thirdFloor)
-    }
-
-    // const getDate = (seconds, nanoSeconds) => {
-    //     const date = new Date(seconds * 1000 + nanoSeconds / 1000000);
-    //     const year = date.getFullYear();
-    //     const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    //     const day = String(date.getDate()).padStart(2, '0');
-    //     return `${year}-${month}-${day}`;
-
-    // }
+   
     useEffect(() => {
         FirebaseDatastore.fetchData().then((response) => {
             response.sort((a, b) => a.houseNumber.localeCompare(b.houseNumber));
@@ -155,13 +145,15 @@ export default function Home() {
             console.error("Error Occured")
         });
         setRefresh(false);
-        
+        setSelectedFloor([localStorage.getItem("selectedFloor")]);
+
     }, [refresh])
 
 
     const handleViewMore = (record) => {
         // Replace '/your-link' with the actual link you want to navigate to
         navigate(`/my-house/update/${record.floor}/${record.houseNumber}`, { state: { data: record } });
+        localStorage.setItem("selectedFloor", record.floor);
     };
 
     const handleUpdateHouse = (record) => {
@@ -176,7 +168,7 @@ export default function Home() {
 
     }
 
-
+console.log("Selected floor ============ ",  selectedFloor)
 
     return (
         <Grid container>
@@ -186,14 +178,14 @@ export default function Home() {
                         House Details
                     </Typography>
                     <Button variant="contained" size="large" style={{ width: "95%", margin: "5px" }}
-                        onClick={handleGroundFloor}
+                        onClick={() => handleSelectedFloor("Ground Floor")}
                     >
                         <Typography variant="h8" >
-                            Ground Floor {groundFloor ? <ArrowDropUpIcon /> : <ArrowDropDownIcon style={{ verticalAlign: 'middle' }} />}
+                            Ground Floor {selectedFloor.includes("Ground Floor") ? <ArrowDropUpIcon /> : <ArrowDropDownIcon style={{ verticalAlign: 'middle' }} />}
                         </Typography>
                     </Button>
 
-                    {groundFloor ?
+                    {selectedFloor.includes("Ground Floor") ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
                             {data && data.map((record, index) => {
@@ -242,14 +234,14 @@ export default function Home() {
                     }
 
                     <Button variant="contained" size="large" style={{ width: "95%", margin: "5px" }}
-                        onClick={handleFirstFloor}
+                        onClick={() => handleSelectedFloor("First Floor")}
                     >
                         <Typography variant="h8" >
-                            First Floor {firstFloor ? <ArrowDropUpIcon /> : <ArrowDropDownIcon style={{ verticalAlign: 'middle' }} />}
+                            First Floor {selectedFloor.includes("First Floor") ? <ArrowDropUpIcon /> : <ArrowDropDownIcon style={{ verticalAlign: 'middle' }} />}
                         </Typography>
                     </Button>
 
-                    {firstFloor ?
+                    {selectedFloor.includes("First Floor") ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
                             {data && data.map((record, index) => {
@@ -298,14 +290,14 @@ export default function Home() {
                     }
 
                     <Button variant="contained" size="large" style={{ width: "95%", margin: "5px" }}
-                        onClick={handleSecondFloor}
+                        onClick={() => handleSelectedFloor("Second Floor")}
                     >
                         <Typography variant="h8" >
-                            Second Floor {secondFloor ? <ArrowDropUpIcon /> : <ArrowDropDownIcon style={{ verticalAlign: 'middle' }} />}
+                            Second Floor {selectedFloor.includes("Second Floor") ? <ArrowDropUpIcon /> : <ArrowDropDownIcon style={{ verticalAlign: 'middle' }} />}
                         </Typography>
                     </Button>
 
-                    {secondFloor ?
+                    {selectedFloor.includes("Second Floor") ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
                             {data && data.map((record, index) => {
@@ -355,14 +347,14 @@ export default function Home() {
 
 
                     <Button variant="contained" size="large" style={{ width: "95%", margin: "5px" }}
-                        onClick={handleThirdFloor}
+                        onClick={() => handleSelectedFloor("Third Floor")}
                     >
                         <Typography variant="h8" >
-                            Third Floor {thirdFloor ? <ArrowDropUpIcon /> : <ArrowDropDownIcon style={{ verticalAlign: 'middle' }} />}
+                            Third Floor {selectedFloor.includes("Third Floor") ? <ArrowDropUpIcon /> : <ArrowDropDownIcon style={{ verticalAlign: 'middle' }} />}
                         </Typography>
                     </Button>
 
-                    {thirdFloor ?
+                    {selectedFloor.includes("Third Floor") ?
 
                         <Paper style={{ width: '95%', padding: '20px', marginTop: "-5px", textAlign: 'center' }}>
                             {data && data && data.map((record, index) => {
